@@ -1,0 +1,58 @@
+#include <MeMCore.h>
+
+int robotSpeed = 100;
+int state = 0;
+
+MeLineFollower lineFollowSensor = MeLineFollower(PORT_2);
+
+void setup() {
+  Serial.begin(9600);
+  
+}
+
+void loop() {
+  switch (state) {
+    case 0: //move forward on line
+      switch (lineFollowSensor.readSensors()) {
+        case 1: //left white
+          state = 1;
+          break;
+        case 2: //right white
+          state = 2;
+          break;
+        case 3: //both white
+          break;
+        default:
+        robot_forward;
+      }
+    
+      //check centered on line
+      //if centered
+      //foward
+      robot_forward();
+      //else, correct centering
+      //or, change state
+      break;
+    case 1: //tweak left
+      break;
+    case 2: //tweak right
+      break;
+    default:
+      state = 0;
+  }
+}
+
+void robot_stop() {
+  m1.stop();
+  m2.stop();
+}
+
+void robot_forward() {
+  m1.run(-robotSpeed);
+  m2.run(robotSpeed);
+}
+
+void robot_backward() {
+  m1.run(robotSpeed);
+  m2.run(-robotSpeed);
+}
