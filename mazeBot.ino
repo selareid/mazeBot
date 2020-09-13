@@ -2,8 +2,8 @@
 #include <SoftwareSerial.h>
 
 int robotSpeed = 200;
-int state = 0;
-int lastState = 0;
+int state = -1;
+int lastState = -1;
 int cyclesInState = 0;
 int path[23];
 
@@ -13,6 +13,7 @@ MeLineFollower lineFollowSensor = MeLineFollower(PORT_2);
 MeUltrasonicSensor ultrasonic = MeUltrasonicSensor(PORT_3);
 MeDCMotor m1 = MeDCMotor(M1);
 MeDCMotor m2 = MeDCMotor(M2);
+MeRGBLed led = MeRGBLed();
 
 void setup() {
   Serial.begin(9600);
@@ -20,12 +21,22 @@ void setup() {
   for (byte i = 0; i < sizeof(path) / sizeof(path[0]); i++) { //set each path item to default of 2
     path[i] = 2;
   }
+
+  led.setpin(13);
+  led.setColor(255, 255, 255);
+  led.show();
 }
 
 void loop() {
   Serial.println(state);
 
   switch (state) {
+    case -1: //prestart state
+      if (lineFollowSensor.readSensors() == 0) {
+        led.setColor(255, 0, 0);
+        changeState(0);
+      }
+      break;
     case 0: //move forward on line
       switch (lineFollowSensor.readSensors()) {
         case 1: //right white
@@ -115,6 +126,7 @@ void loop() {
   }
 
   cyclesInState++;
+  led.show();
 }
 
 int findLeftTurn() { // find left turn based on current turn position
