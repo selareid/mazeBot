@@ -65,15 +65,12 @@ void loop() {
 //      m2.run(robotSpeed);
       if (lineFollowSensor.readSensors() == 0 || lineFollowSensor.readSensors() == 3) changeState(0);
       break;
-    case 3: //go to end of intersection
+    case 3: //go to end of intersection    
       robot_forward();
       if (lineFollowSensor.readSensors() != 3) {
-        if (floor(random(0, 2)) == 1) { //options for state change: 4, 5, 8 - in this case we have 50% change of straight and 50% change of left/right
-          changeState(floor(random(0, 2)) /*random between 0 and 1*/ + 4); //4 or 5
-        }
-        else {
-          changeState(8);
-        }
+        changeState(4);
+        path[currentPathPosition] = -1;
+        //if new intersection - turn left, update path turn position thing
       }
       break;
     case 4: // rotate left
@@ -119,13 +116,22 @@ void loop() {
         
         if (sensorRead > 25 && sensorRead != 400) {
           changeState(0);
-          path[currentPathPosition] = lastState == 6 ? -1 : lastState == 7 ? 1 : 0; //add to saved path depending on last state
           currentPathPosition++;
         }
         else {
-          if (lastState == 6 || lastState == 7) {
-            path[currentPathPosition] = lastState == 6 ? -1 : lastState == 7 ? 1 : 0;
-            changeState(9);
+          switch (path[currentPathPosition]) {
+            case -1:
+              changeState(5);
+              path[currentPathPosition] = 0;
+              break;
+            case 0:
+              changeState(5);
+              path[currentPathPosition] = 1;
+              break;
+            case 1:
+              changeState(5);
+              path[currentPathPosition] = 2;
+              break;
           }
         }
       break;
