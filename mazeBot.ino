@@ -121,7 +121,7 @@ void loop() {
           else currentPathPosition++;
         }
         else {
-          if (backtracking) {
+          if (backTracking) {
             backTracking = false; //means dont need to put in each case
             
             switch (path[currentPathPosition]) { //saved positions are from starting position (when approaching intersection)
