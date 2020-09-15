@@ -5,7 +5,7 @@ int robotSpeed = 200;
 int state = -1;
 int lastState = -1;
 int cyclesInState = 0;
-int path[23];
+int path[23]; //-1, 0, 1, 2 (left, forward, right, backward/default)
 
 int currentPathPosition = 0;
 
@@ -29,6 +29,7 @@ void setup() {
 
 void loop() {
   Serial.println(state);
+  if (path[23] != 2) led.setColor(255, 0, 255);
 
   switch (state) {
     case -1: //prestart state
@@ -76,21 +77,29 @@ void loop() {
       }
       break;
     case 4: // rotate left
+      led.setColorAt(0, 255, 0, 0);
+      led.setColorAt(1, 0, 0, 255);
       m1.run(robotSpeed);
       m2.run(robotSpeed);
       if (lineFollowSensor.readSensors() == 3) changeState(6);
       break;
     case 5: // rotate right
+      led.setColorAt(1, 255, 0, 0);
+      led.setColorAt(0, 0, 0, 255);
       m1.run(-robotSpeed);
       m2.run(-robotSpeed);
       if (lineFollowSensor.readSensors() == 3) changeState(7);
       break;
     case 6: //continue left rotation and detect end
+      led.setColorAt(0, 255, 0, 0);
+      led.setColorAt(1, 0, 0, 255);
       m1.run(robotSpeed);
       m2.run(robotSpeed);
       if (lineFollowSensor.readSensors() == 0) changeState(10);
       break;
     case 7: //continue right rotation and detect end
+      led.setColorAt(1, 255, 0, 0);
+      led.setColorAt(0, 0, 0, 255);
       m1.run(-robotSpeed);
       m2.run(-robotSpeed);
       if (lineFollowSensor.readSensors() == 0) changeState(10);
@@ -103,6 +112,8 @@ void loop() {
       path[currentPathPosition] = 2;
       break;
     case 10: //check ultrasonic sensor
+        led.setColor(0, 255, 0);
+    
         int sensorRead; //for some reason got error when this was one line
         sensorRead = ultrasonic.distanceCm(400); //400 default if too close or too far
         
@@ -116,9 +127,6 @@ void loop() {
             path[currentPathPosition] = lastState == 6 ? -1 : lastState == 7 ? 1 : 0;
             changeState(9);
           }
-          else { //continuing straight
-              changeState(8);
-            }
         }
       break;
     default:
