@@ -3,8 +3,6 @@
 
 int robotSpeed = 200;
 int state = -1;
-int lastState = -1;
-int cyclesInState = 0;
 int path[23]; //-1, 0, 1, 2 (left, forward, right, backward/default)
 
 int currentPathPosition = 0;
@@ -139,7 +137,6 @@ void loop() {
       changeState(0);
   }
 
-  cyclesInState++;
   led.show();
 }
 
@@ -152,9 +149,7 @@ int findLeftTurn() { // find left turn based on current turn position
 }
 
 void changeState(int newState) {
-  lastState = state;
   state = newState;
-  cyclesInState = 0;
   robot_stop();
 }
 
