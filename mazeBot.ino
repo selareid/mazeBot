@@ -4,6 +4,7 @@
 int robotSpeed = 200;
 int state = -1;
 int path[23]; //-1, 0, 1, 2 (left, forward, right, backward/default)
+boolean backTracking = false; //are we reversing the flow??
 
 int currentPathPosition = 0;
 
@@ -114,22 +115,50 @@ void loop() {
         
         if (sensorRead > 25 && sensorRead != 400) {
           changeState(0);
-          currentPathPosition++;
+
+          //increase path position, unless backtracking
+          if (path[currentPathPosition] == 2) path[currentPathPosition]--;
+          else currentPathPosition++;
         }
         else {
-          switch (path[currentPathPosition]) {
-            case -1:
-              changeState(5);
-              path[currentPathPosition] = 0;
-              break;
-            case 0:
-              changeState(5);
-              path[currentPathPosition] = 1;
-              break;
-            case 1:
-              changeState(5);
-              path[currentPathPosition] = 2;
-              break;
+          if (backtracking) {
+            backTracking = false; //means dont need to put in each case
+            
+            switch (path[currentPathPosition]) { //saved positions are from starting position (when approaching intersection)
+              case -1: //facing right
+                //try next path (top)
+                changeState(4);
+                path[currentPathPosition] = 0;
+                break;
+              case 0: //facing down
+                //try next path (right)
+                changeState(4);
+                path[currentPathPosition] = 1;
+                break;
+              case 1: //facing left
+                //have to backtrack more
+                changeState(4);
+                path[currentPathPosition] = 2;
+                backTracking = true;
+                break;
+            }
+          }
+          else {  
+            switch (path[currentPathPosition]) {
+              case -1: //try next intersection (clockwise)
+                changeState(5);
+                path[currentPathPosition] = 0;
+                break;
+              case 0: //try next intersection (clockwise)
+                changeState(5);
+                path[currentPathPosition] = 1;
+                break;
+              case 1: //no available intersections, must reverse
+                changeState(5);
+                path[currentPathPosition] = 2;
+                backTracking = true;
+                break;
+            }
           }
         }
       break;
