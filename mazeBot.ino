@@ -3,7 +3,7 @@
 
 int robotSpeed = 200;
 int state = -1;
-int path[23]; //-1, 0, 1, 2 (left, forward, right, backward/default)
+int path[255]; //-1, 0, 1, 2 (left, forward, right, backward/default)
 boolean backTracking = false; //are we reversing the flow??
 
 int currentPathPosition = 0;
@@ -27,7 +27,8 @@ void setup() {
 }
 
 void loop() {
-  Serial.println(state);
+//  Serial.println(state);
+
   if (path[23] != 2) led.setColor(255, 0, 255);
 
   switch (state) {
@@ -66,10 +67,15 @@ void loop() {
       break;
     case 3: //go to end of intersection    
       robot_forward();
+      
       if (lineFollowSensor.readSensors() != 3) {
         changeState(4);
-        path[currentPathPosition] = -1;
+        path[currentPathPosition]++;
         //if new intersection - turn left, update path turn position thing
+
+        if (path[currentPathPosition] >= 3) {
+          path[currentPathPosition] = -1;
+        }
       }
       break;
     case 4: // rotate left
@@ -108,22 +114,30 @@ void loop() {
       path[currentPathPosition] = 2;
       break;
     case 10: //check ultrasonic sensor
-        led.setColor(0, 255, 0);
-    
         int sensorRead; //for some reason got error when this was one line
         sensorRead = ultrasonic.distanceCm(400); //400 default if too close or too far
+
+        Serial.println("position: " + (String) currentPathPosition + " turn direction: "
+        + (String) path[currentPathPosition] + " backTracking? " + (String) backTracking + " sensorRead: " + (String) sensorRead);
         
         if (sensorRead > 25 && sensorRead != 400) {
-          changeState(0);
-
           //increase path position, unless backtracking
-          if (path[currentPathPosition] == 2) path[currentPathPosition]--;
-          else currentPathPosition++;
+          if (path[currentPathPosition] == 2) {
+            Serial.println("IN THE BACKTRACK --");
+            currentPathPosition--;
+            led.setColor(0, 255, 50);
+          }
+          else {
+            Serial.println("NOT IN THE BACKTRACK ++");
+            backTracking = false;
+            led.setColor(0, 50, 255);
+            currentPathPosition++;
+          }
+          
+          changeState(0);
         }
         else {
-          if (backTracking) {
-            backTracking = false; //means dont need to put in each case
-            
+          if (backTracking) {            
             switch (path[currentPathPosition]) { //saved positions are from starting position (when approaching intersection)
               case -1: //facing right
                 //try next path (top)
@@ -139,8 +153,9 @@ void loop() {
                 //have to backtrack more
                 changeState(4);
                 path[currentPathPosition] = 2;
-                backTracking = true;
                 break;
+              default:
+                Serial.println("REACHED DEFAULT CASE IN BACKTRACKING SWITCH");
             }
           }
           else {  
@@ -158,6 +173,8 @@ void loop() {
                 path[currentPathPosition] = 2;
                 backTracking = true;
                 break;
+              default:
+                Serial.println("REACHED DEFAULT CASE IN NON-BACKTRACKING SWITCH");
             }
           }
         }
