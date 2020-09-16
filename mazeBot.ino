@@ -120,7 +120,7 @@ void loop() {
         Serial.println("position: " + (String) currentPathPosition + " turn direction: "
         + (String) path[currentPathPosition] + " backTracking? " + (String) backTracking + " sensorRead: " + (String) sensorRead);
         
-        if (sensorRead > 25 && sensorRead != 400) {
+        if (sensorRead > 25) {
           //increase path position, unless backtracking
           if (path[currentPathPosition] == 2) {
             Serial.println("IN THE BACKTRACK --");
