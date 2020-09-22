@@ -5,6 +5,7 @@ int robotSpeed = 200;
 int state = -1;
 int path[255]; //-1, 0, 1, 2 (left, forward, right, backward/default)
 boolean backTracking = false; //are we reversing the flow??
+boolean facingIn = false;
 
 int currentPathPosition = 0;
 
@@ -65,11 +66,12 @@ void loop() {
 //      m2.run(robotSpeed);
       if (lineFollowSensor.readSensors() == 0 || lineFollowSensor.readSensors() == 3) changeState(0);
       break;
-    case 3: //go to end of intersection    
+    case 3: //go to end of intersection
       robot_forward();
       
       if (lineFollowSensor.readSensors() != 3) {
         changeState(4);
+        facingIn = false;
         path[currentPathPosition]++;
         //if new intersection - turn left, update path turn position thing
 
@@ -118,7 +120,8 @@ void loop() {
         sensorRead = ultrasonic.distanceCm(400); //400 default if too close or too far
 
         Serial.println("position: " + (String) currentPathPosition + " turn direction: "
-        + (String) path[currentPathPosition] + " backTracking? " + (String) backTracking + " sensorRead: " + (String) sensorRead);
+        + (String) path[currentPathPosition] + " backTracking? " + (String) backTracking
+        + " sensorRead: " + (String) sensorRead + " facinging: " + (String) facingIn);
         
         if (sensorRead > 25) {
           //increase path position, unless backtracking
@@ -130,6 +133,7 @@ void loop() {
           else {
             Serial.println("NOT IN THE BACKTRACK ++");
             backTracking = false;
+            facingIn = false;
             led.setColor(0, 50, 255);
             currentPathPosition++;
           }
@@ -137,22 +141,25 @@ void loop() {
           changeState(0);
         }
         else {
-          if (backTracking) {            
+          if (backTracking) {
             switch (path[currentPathPosition]) { //saved positions are from starting position (when approaching intersection)
-              case -1: //facing right
+              case -1: //facing right, unless facingin is false
                 //try next path (top)
-                changeState(4);
+                changeState(facingIn ? 4 : 5);
                 path[currentPathPosition] = 0;
+                facingIn = false;
                 break;
-              case 0: //facing down
+              case 0: //facing down, unless facingin is false
                 //try next path (right)
-                changeState(4);
+                changeState(facingIn ? 4 : 5);
                 path[currentPathPosition] = 1;
+                facingIn = false;
                 break;
-              case 1: //facing left
+              case 1: //facing left, unless facingin is false
                 //have to backtrack more
-                changeState(4);
+                changeState(facingIn ? 4 : 5);
                 path[currentPathPosition] = 2;
+                facingIn = false;
                 break;
               default:
                 Serial.println("REACHED DEFAULT CASE IN BACKTRACKING SWITCH");
@@ -172,6 +179,7 @@ void loop() {
                 changeState(5);
                 path[currentPathPosition] = 2;
                 backTracking = true;
+                facingIn = true;
                 break;
               default:
                 Serial.println("REACHED DEFAULT CASE IN NON-BACKTRACKING SWITCH");
@@ -197,6 +205,7 @@ int findLeftTurn() { // find left turn based on current turn position
 void changeState(int newState) {
   state = newState;
   robot_stop();
+  Serial.println("changing to state " + (String) newState);
 }
 
 void robot_stop() {
