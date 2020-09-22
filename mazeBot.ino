@@ -6,6 +6,7 @@ int state = -1;
 int path[255]; //-1, 0, 1, 2 (left, forward, right, backward/default)
 boolean backTracking = false; //are we reversing the flow??
 boolean facingIn = false;
+boolean secondRun = false;
 
 int currentPathPosition = 0;
 
@@ -25,14 +26,20 @@ void setup() {
   led.setpin(13);
   led.setColor(255, 255, 255);
   led.show();
+
+  pinMode(7, INPUT); //button on the robot
 }
 
 void loop() {
 //  Serial.println(state);
 
   if (path[23] != 2) led.setColor(255, 0, 255);
+  if (state != -2 && analogRead(7) == 0) changeState(-2);
 
   switch (state) {
+    case -2: //waiting after button press (end of maze)
+        
+      break;
     case -1: //prestart state
       if (lineFollowSensor.readSensors() == 0) {
         led.setColor(255, 0, 0);
