@@ -6,7 +6,6 @@ int state = -1;
 int path[255]; //-1, 0, 1, 2 (left, forward, right, backward/default)
 boolean backTracking = false; //are we reversing the flow??
 boolean facingIn = false;
-boolean secondRun = false;
 
 int currentPathPosition = 0;
 
@@ -33,12 +32,32 @@ void setup() {
 void loop() {
 //  Serial.println(state);
 
-  if (path[23] != 2) led.setColor(255, 0, 255);
-  if (state != -2 && analogRead(7) == 0) changeState(-2);
+  if (state != -2 && analogRead(7) == 0) {
+    changeState(-2);
+    delay(1000);
+  }
 
   switch (state) {
     case -2: //waiting after button press (end of maze)
+        Serial.println("=============");
+        for (byte i = 0; i < sizeof(path) / sizeof(path[0]); i++) { //set each path item to default of 2
+          Serial.print(path[i]);
+        }
+        Serial.println("=============");
+          
+        led.setColor(0, 255, 0);
         
+        backTracking = false;
+        facingIn = false;
+        currentPathPosition = 0;
+        
+        led.setColor(0, 255, 0);
+        
+        if (analogRead(7) == 0) {
+          changeState(0);
+          led.setColor(0, 0, 255);
+          delay(1000);
+        }
       break;
     case -1: //prestart state
       if (lineFollowSensor.readSensors() == 0) {
@@ -77,13 +96,20 @@ void loop() {
       robot_forward();
       
       if (lineFollowSensor.readSensors() != 3) {
-        changeState(4);
-        facingIn = false;
-        path[currentPathPosition]++;
-        //if new intersection - turn left, update path turn position thing
-
-        if (path[currentPathPosition] >= 3) {
-          path[currentPathPosition] = -1;
+        if (path[currentPathPosition] == 2 || backTracking) {
+          changeState(4);
+          facingIn = false;
+          path[currentPathPosition]++;
+          //if new intersection - turn left, update path turn position thing
+  
+          if (path[currentPathPosition] >= 3) {
+            path[currentPathPosition] = -1;
+          }
+        }
+        else {
+          Serial.println("current path position " + (String) path[currentPathPosition]);
+          changeState(path[currentPathPosition] == -1 ? 4 : path[currentPathPosition] == 0 ? 8 : 5);
+//          path[currentPathPosition]++; //I believe this is the error here HERE REMOVE THIS LINE - NOTE TO SELF - it affects backtrack detection in case 10
         }
       }
       break;
