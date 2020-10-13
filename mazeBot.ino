@@ -227,14 +227,6 @@ void loop() {
   led.show();
 }
 
-int findLeftTurn() { // find left turn based on current turn position
-  switch (path[currentPathPosition]) {
-    case 2:
-
-      break;
-  }
-}
-
 void changeState(int newState) {
   state = newState;
   robot_stop();
