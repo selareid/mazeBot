@@ -1,5 +1,4 @@
 #include <MeMCore.h>
-#include <SoftwareSerial.h>
 
 int robotSpeed = 200;
 int state = -1;
@@ -16,8 +15,6 @@ MeDCMotor m2 = MeDCMotor(M2);
 MeRGBLed led = MeRGBLed();
 
 void setup() {
-  Serial.begin(9600);
-
   for (byte i = 0; i < sizeof(path) / sizeof(path[0]); i++) { //set each path item to default of 2
     path[i] = 2;
   }
@@ -30,7 +27,6 @@ void setup() {
 }
 
 void loop() {
-//  Serial.println(state);
 
   if (state != -2 && analogRead(7) == 0) {
     changeState(-2);
@@ -38,13 +34,7 @@ void loop() {
   }
 
   switch (state) {
-    case -2: //waiting after button press (end of maze)
-        Serial.println("=============");
-        for (byte i = 0; i < sizeof(path) / sizeof(path[0]); i++) { //set each path item to default of 2
-          Serial.print(path[i]);
-        }
-        Serial.println("=============");
-          
+    case -2: //waiting after button press (end of maze)          
         led.setColor(0, 255, 0);
         
         backTracking = false;
@@ -83,13 +73,11 @@ void loop() {
 
       break;
     case 1: //tweak right
-//      m1.run(robotSpeed);
       m2.run(robotSpeed);
       if (lineFollowSensor.readSensors() == 0 || lineFollowSensor.readSensors() == 3) changeState(0);
       break;
     case 2: //tweak left
       m1.run(-robotSpeed);
-//      m2.run(robotSpeed);
       if (lineFollowSensor.readSensors() == 0 || lineFollowSensor.readSensors() == 3) changeState(0);
       break;
     case 3: //go to end of intersection
@@ -107,9 +95,7 @@ void loop() {
           }
         }
         else {
-          Serial.println("current path position " + (String) path[currentPathPosition]);
           changeState(path[currentPathPosition] == -1 ? 4 : path[currentPathPosition] == 0 ? 8 : 5);
-//          path[currentPathPosition]++; //I believe this is the error here HERE REMOVE THIS LINE - NOTE TO SELF - it affects backtrack detection in case 10
         }
       }
       break;
@@ -149,22 +135,16 @@ void loop() {
       path[currentPathPosition] = 2;
       break;
     case 10: //check ultrasonic sensor
-        int sensorRead; //for some reason got error when this was one line
+        int sensorRead; //for some reason got error when declaraction and assignment were on one line
         sensorRead = ultrasonic.distanceCm(400); //400 default if too close or too far
-
-        Serial.println("position: " + (String) currentPathPosition + " turn direction: "
-        + (String) path[currentPathPosition] + " backTracking? " + (String) backTracking
-        + " sensorRead: " + (String) sensorRead + " facinging: " + (String) facingIn);
         
         if (sensorRead > 25) {
-          //increase path position, unless backtracking
+          //increase path position, unless backtracking (going backward)
           if (path[currentPathPosition] == 2) {
-            Serial.println("IN THE BACKTRACK --");
             currentPathPosition--;
             led.setColor(0, 255, 50);
           }
           else {
-            Serial.println("NOT IN THE BACKTRACK ++");
             backTracking = false;
             facingIn = false;
             led.setColor(0, 50, 255);
@@ -194,8 +174,6 @@ void loop() {
                 path[currentPathPosition] = 2;
                 facingIn = false;
                 break;
-              default:
-                Serial.println("REACHED DEFAULT CASE IN BACKTRACKING SWITCH");
             }
           }
           else {  
@@ -214,8 +192,6 @@ void loop() {
                 backTracking = true;
                 facingIn = true;
                 break;
-              default:
-                Serial.println("REACHED DEFAULT CASE IN NON-BACKTRACKING SWITCH");
             }
           }
         }
@@ -230,7 +206,6 @@ void loop() {
 void changeState(int newState) {
   state = newState;
   robot_stop();
-  Serial.println("changing to state " + (String) newState);
 }
 
 void robot_stop() {
